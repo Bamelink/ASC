@@ -43,13 +43,15 @@ The current minimum required version for the main dependencies are:
 
 >1. Install west, and make sure ~/.local/bin is on your PATH environment variable:
 >```bash
->west zephyr-export
+>pip3 install --user -U west
+>echo 'export PATH=~/.local/bin:"$PATH"' >> ~/.bashrc
+>source ~/.bashrc
 >```
 >2. Get the Zephyr source code:
 >```bash
-mkdir ~/zephyrproject
-cd ~/zephyrproject
-git clone --branch Zephyr https://ifst.ostfalia.de/gitlab/wob-racing/control-units/autonomous-system-controller
+>mkdir ~/zephyrproject
+>cd ~/zephyrproject
+>git clone https://github.com/Bamelink/ASC.git
 >west init .
 >west update
 >```
@@ -67,8 +69,8 @@ git clone --branch Zephyr https://ifst.ostfalia.de/gitlab/wob-racing/control-uni
 >1. Download and verify the latest Zephyr SDK bundle:
 >```bash
 >cd ~
->wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.15.0/>zephyr-sdk-0.15.0_linux-x86_64.tar.gz
->wget -O - https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.15.0/sha256.>sum | shasum --check --ignore-missing
+>wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.15.0/zephyr-sdk-0.15.0_linux-x86_64.tar.gz
+>wget -O - https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.15.0/sha256.sum | shasum --check --ignore-missing
 >```
 >2. Extract the Zephyr SDK bundle archive:
 >```bash
