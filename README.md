@@ -53,6 +53,9 @@ The current minimum required version for the main dependencies are:
 >cd ~/zephyrproject
 >git clone https://github.com/Bamelink/ASC.git
 >west init .
+>cd zephyr
+>git checkout 4256cd4
+> cd ..
 >west update
 >```
 >3. Export a Zephyr CMake package. This allows CMake to automatically load boilerplate >code required for building Zephyr applications.
