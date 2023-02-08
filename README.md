@@ -100,11 +100,11 @@ The current minimum required version for the main dependencies are:
 ## Building
 Navigate into the folder
 ```bash
-cd ~/zephyrproject/autonomous-system-controller/Software
+cd ~/zephyrproject
 ```
 From here you can build via the following command
 ```bash
-west build -b asc -p always application
+west build -b asc -p always ASC
 ```
 Devicetreeoverlays or config with the right namingscheme (e.g. asc.overlay or asc.conf) in the applicaiton/boards/ directory will automaticly be compiled into the application
 
