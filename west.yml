@@ -1,0 +1,13 @@
+manifest:
+  self:
+    path: autonomous-system-controller
+
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+
+  projects:
+    - name: zephyr
+      remote: zephyrproject-rtos
+      revision: 3.2.0
+      import: true

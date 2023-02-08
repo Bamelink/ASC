@@ -1,0 +1,144 @@
+/*
+ * Copyright (c) 2017 Linaro Limited
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include <st/f4/stm32f407Xg.dtsi>
+#include <st/f4/stm32f407v(e-g)tx-pinctrl.dtsi>
+
+/ {
+	model = "Autonomous System Controller";
+	compatible = "st,asc";
+
+	chosen {
+		zephyr,console = &usart3;
+		zephyr,shell-uart = &usart3;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,ccm = &ccm0;
+	};
+
+	aliases {
+		fcan = &can1;
+		scan = &can2;
+        dlcan = &mcp2515;
+	};
+};
+
+
+&clk_hse {
+	clock-frequency = <DT_FREQ_M(16)>;
+	status = "okay";
+};
+
+&pll {
+	div-m = <8>;
+	mul-n = <168>;
+	div-p = <2>;
+	div-q = <7>;
+	clocks = <&clk_hse>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(168)>;
+	ahb-prescaler = <1>;
+	apb1-prescaler = <4>;
+	apb2-prescaler = <2>;
+};
+
+&rng {
+	status = "okay";
+};
+
+&usart1 {
+	pinctrl-0 = <&usart1_tx_pa9 &usart1_rx_pb7>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "disabled";
+};
+
+&usart2 {
+	pinctrl-0 = <&usart2_tx_pa2 &usart2_rx_pa3>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "disabled";
+};
+
+&usart3 {
+	pinctrl-0 = <&usart3_tx_pd9 &usart3_rx_pd8>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+zephyr_udc0: &usbotg_fs {
+	pinctrl-0 = <&usb_otg_fs_dm_pa11 &usb_otg_fs_dp_pa12>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&can1 {
+	pinctrl-0 = <&can1_rx_pd0 &can1_tx_pd1>;
+	pinctrl-names = "default";
+	bus-speed = <500000>;
+	status = "okay";
+};
+
+&can2 {
+	pinctrl-0 = <&can2_rx_pb5 &can2_tx_pb6>;
+	pinctrl-names = "default";
+	bus-speed = <500000>;
+	status = "okay";
+};
+
+&spi3 {
+    pinctrl-0 = <&spi3_sck_pc10
+		     &spi3_miso_pc11 &spi3_mosi_pc12>;
+	pinctrl-names = "default";
+	status = "okay";
+	cs-gpios = <&gpiod 0 GPIO_ACTIVE_LOW>;
+
+    mcp2515: can3@0 {
+		compatible = "microchip,mcp2515";
+		spi-max-frequency = <1000000>;
+		int-gpios = <&gpioa 10 GPIO_ACTIVE_LOW>; /* D2 */
+		status = "okay";
+        label = "MCP2515";
+		reg = <0x0>;
+		osc-freq = <16000000>;
+		bus-speed = <125000>;
+		sjw = <1>;
+		sample-point = <875>;
+
+		can-transceiver {
+			max-bitrate = <1000000>;
+		};
+	};
+};
+
+&mac {
+	status = "disabled";
+	pinctrl-0 = <&eth_crs_pa0
+		     &eth_ref_clk_pa1
+			 &eth_mdio_pa2
+			 &eth_col_pa3
+			 &eth_crs_dv_pa7
+			 &eth_rxd2_pb0
+			 &eth_rxd3_pb1
+			 &eth_pps_out_pb5
+			 &eth_txd3_pb8
+			 &eth_rx_er_pb10
+			 &eth_tx_en_pb11
+		     &eth_txd0_pb12
+		     &eth_txd1_pb13
+			 &eth_mdc_pc1
+			 &eth_txd2_pc2
+			 &eth_tx_clk_pc3
+		     &eth_rxd0_pc4
+		     &eth_rxd1_pc5>;
+	pinctrl-names = "default";
+};

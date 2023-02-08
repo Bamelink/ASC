@@ -1,0 +1,15 @@
+identifier: asc
+name: Autonomous System Controller
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+ram: 128
+flash: 1024
+supported:
+  - can
+  - pwm
+  - counter
+  - usb
