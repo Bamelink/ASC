@@ -86,7 +86,7 @@ The current minimum required version for the main dependencies are:
 >```
 >4. Install udev rules, which allow you to flash most Zephyr boards as a regular user:
 >```bash
->sudo cp ~/zephyr-sdk-0.15.0/sysroots/x86_64-pokysdk-linux/usr/share/openocd/contrib/>60-openocd.rules /etc/udev/rules.d
+>sudo cp ~/zephyr-sdk-0.15.0/sysroots/x86_64-pokysdk-linux/usr/share/openocd/contrib/60-openocd.rules /etc/udev/rules.d
 >sudo udevadm control --reload
 >```
 
