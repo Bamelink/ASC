@@ -1,7 +1,75 @@
 # ASC
 Microros on STM32 via Zephyr
 
-## Setup Zephyr
+## Docker to build
+Build the container locally on your workstation:
+```bash
+sudo docker build -t zeph:latest .
+```
+With this container, you are able to build the binaries
+```bash
+sudo docker run -ti --rm -v $(pwd):/work/zephyrproject/ASC zeph
+cd zephyrproject/ASC
+west build -b asc -p always
+```
+
+## Adding custom messages
+To include custom messages, you have to clone the repository in the uROS build.
+
+In the "modules/libmicroros/libmicroros.mk" under "$(COMPONENT_PATH)/micro_ros_src/src:" add the git clone command to your custom messages.
+
+The buildfiles should automaticlly get copied into the right folder. If not, you can copy them manually. See "$(COMPONENT_PATH)/libmicroros.a:" for detailed paths.
+
+
+## uROS agent
+> **_NOTE:_** The uROS agent without Docker currently has permission issues when accessing the any USB device of the /dev folder.
+
+To communicate with the microcontroller, you can run the microros agent via docker
+```bash
+sudo docker run -it --rm -v /dev:/dev --privileged --net=host microros/micro-ros-agent:foxy serial-usb --dev [YOUR BOARD PORT, e.g. /dev/ttyACM0]
+```
+You can also put the -v6 flag at the end to get a more detailed output of what is happening. If you want to see a topic, you can run the following commands
+```bash
+sudo docker run -dit -v /dev:/dev --name urosagent --privileged --net=host microros/micro-ros-agent:foxy serial-usb --dev [YOUR BOARD PORT, e.g. /dev/ttyACM0]
+
+sudo docker exec -ti urosagent /bin/bash
+```
+With the exec command, you directly attach to the container console and execute ros2 commands. Be sure to delete the container after you are finished!
+```bash
+sudo docker stop urosagent
+sudo docker rm urosagent
+```
+---
+## Errors you can face
+### Zephyr repo not found.
+If you face the error that the Zephyr repo could not be found, make sure to source it
+```bash
+source ~/zephyrproject/zephyr/zephyr-env.sh
+```
+This is especially important, if you do not have cloned the autonomous-system-controller into the zephyrproject or zephyr folder!
+
+### Posix not found
+```c
+/home/jan/zephyrproject/autonomous-system-controller/Software/application/modules/libmicroros/micro_ros_src/src/rcutils/src/time_unix.c:33:10: fatal error: posix/time.h: No such file or directory
+   33 | #include <posix/time.h>  //  Points to Zephyr toolchain posix time implementation
+      |          ^~~~~~~~~~~~~~
+```
+Here a file has to change its include path. Open the  file "modules/libmicroros/micro_ros_src/src/rcutils/src/time_unix.c" and change
+```c
+#include <posix/time.h>  
+```
+to
+```c
+#include <zephyr/posix/time.h>
+```
+
+### Undifined Reverence to devicetree_ord_xx
+If you face a message like "Undifined Reverence to devicetree_ord_19", you most likely have accessed a device from devicetree which got referenced in your code by something like "DEVICE_DT_GET(DT_ALIAS(scan))".
+
+This will fail if the device is not configured properly in the Devicetree or the coresponding driver is not turned on in the prj.conf. Examples for this would be you want to access a CAN device but the device has status = "disabled"; in the devicetree or CONFIG_CAN=y is not included in the prj.conf.
+
+## Setup Zephyr to build locally
+> **_NOTE:_** Make sure ROS is NOT installed on this system or the build will crash!
 
 Update your packages
 ```bash
@@ -119,47 +187,3 @@ Lastly you can flash the applicaiton by just running
 west flash
 ```
 ---
-## uROS agent
-To communicate with the microcontroller, you can run the microros agent via docker
-```bash
-sudo docker run -it --rm -v /dev:/dev --privileged --net=host microros/micro-ros-agent:foxy serial-usb --dev [YOUR BOARD PORT, e.g. /dev/ttyACM0]
-```
-You can also put the -v6 flag at the end to get a more detailed output of what is happening. If you want to see a topic, you can run the following commands
-```bash
-sudo docker run -dit -v /dev:/dev --name urosagent --privileged --net=host microros/micro-ros-agent:foxy serial-usb --dev [YOUR BOARD PORT, e.g. /dev/ttyACM0]
-
-sudo docker exec -ti urosagent /bin/bash
-```
-With the exec command, you directly attach to the container console and execute ros2 commands. Be sure to delete the container after you are finished!
-```bash
-sudo docker stop urosagent
-sudo docker rm urosagent
-```
----
-## Errors you can face
-### Zephyr repo not found.
-If you face the error that the Zephyr repo could not be found, make sure to source it
-```bash
-source ~/zephyrproject/zephyr/zephyr-env.sh
-```
-This is especially important, if you do not have cloned the autonomous-system-controller into the zephyrproject or zephyr folder!
-
-### Posix not found
-```c
-/home/jan/zephyrproject/autonomous-system-controller/Software/application/modules/libmicroros/micro_ros_src/src/rcutils/src/time_unix.c:33:10: fatal error: posix/time.h: No such file or directory
-   33 | #include <posix/time.h>  //  Points to Zephyr toolchain posix time implementation
-      |          ^~~~~~~~~~~~~~
-```
-Here a file has to change its include path. Open the  file "modules/libmicroros/micro_ros_src/src/rcutils/src/time_unix.c" and change
-```c
-#include <posix/time.h>  
-```
-to
-```c
-#include <zephyr/posix/time.h>
-```
-
-### Undifined Reverence to devicetree_ord_xx
-If you face a message like "Undifined Reverence to devicetree_ord_19", you most likely have accessed a device from devicetree which got referenced in your code by something like "DEVICE_DT_GET(DT_ALIAS(scan))".
-
-This will fail if the device is not configured properly in the Devicetree or the coresponding driver is not turned on in the prj.conf. Examples for this would be you want to access a CAN device but the device has status = "disabled"; in the devicetree or CONFIG_CAN=y is not included in the prj.conf.
