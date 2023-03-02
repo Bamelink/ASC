@@ -122,9 +122,51 @@ void main(void)
 		printf("ERROR spawning rx thread\n");
 	}
 	/* END can setup END */
+
+	/* BEGIN adc setup BEGIN */
+	int err;
+	int16_t buf;
+	struct adc_sequence sequence = {
+		.buffer = &buf,
+		/* buffer size in bytes, not number of samples */
+		.buffer_size = sizeof(buf),
+	};
+	/* Configure channels individually prior to sampling. */
+	for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
+		if (!device_is_ready(adc_channels[i].dev)) {
+			printk("ADC controller device not ready\n");
+			return;
+		}
+
+		err = adc_channel_setup_dt(&adc_channels[i]);
+		if (err < 0) {
+			printk("Could not setup channel #%d (%d)\n", i, err);
+			return;
+		}
+	}
+	/* END adc setup END */
 	
 
 	while(1){
+		printk("ADC reading:\n");
+		for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
+			int32_t val_mv;
+
+			printk("- %s, channel %d: ",
+			       adc_channels[i].dev->name,
+			       adc_channels[i].channel_id);
+
+			(void)adc_sequence_init_dt(&adc_channels[i], &sequence);
+
+			err = adc_read(adc_channels[i].dev, &sequence);
+			if (err < 0) {
+				printk("Could not read (%d)\n", err);
+				continue;
+			} else {
+				printk("%"PRId16, buf);
+			}
+		}
+
 		rclc_executor_spin(&executor);
 		frame.data[0] = counter;
 		//can_send(fcan, &frame, K_MSEC(100), NULL, NULL);

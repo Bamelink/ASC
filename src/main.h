@@ -30,6 +30,12 @@
 #include <zephyr/drivers/can.h>
 #include <zephyr/sys/byteorder.h>
 
+// For ADC
+#include <inttypes.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <zephyr/drivers/adc.h>
+
 
 // uROS defines and statics
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){printf("Failed status on line %d: %d. Aborting.\n",__LINE__,(int)temp_rc);for(;;){};}}
@@ -50,3 +56,19 @@ const struct device *const fcan = DEVICE_DT_GET(DT_ALIAS(fcan));
 const struct device *const scan = DEVICE_DT_GET(DT_ALIAS(scan));
 struct k_thread rx_thread_data;
 CAN_MSGQ_DEFINE(counter_msgq, 2);
+
+
+/* ADC DEFINES AND STRUCTS */
+#if !DT_NODE_EXISTS(DT_PATH(zephyr_user)) || \
+	!DT_NODE_HAS_PROP(DT_PATH(zephyr_user), io_channels)
+#error "No suitable devicetree overlay specified"
+#endif
+
+#define DT_SPEC_AND_COMMA(node_id, prop, idx) \
+	ADC_DT_SPEC_GET_BY_IDX(node_id, idx),
+
+/* Data of ADC io-channels specified in devicetree. */
+static const struct adc_dt_spec adc_channels[] = {
+	DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels,
+			     DT_SPEC_AND_COMMA)
+};
