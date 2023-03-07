@@ -1,5 +1,9 @@
 #include "main.h"
 
+/* STATICS */
+rcl_publisher_t publisher;
+std_msgs__msg__String msg;
+
 int err;
 int16_t buf;
 struct adc_sequence sequence = {
@@ -8,49 +12,12 @@ struct adc_sequence sequence = {
 	.buffer_size = sizeof(buf),
 };
 
-/* CAN */
-void rx_thread(void *arg1, void *arg2, void *arg3)
-{
-	ARG_UNUSED(arg1);
-	ARG_UNUSED(arg2);
-	ARG_UNUSED(arg3);
-	const struct can_filter my_filter = {
-        .id_type = CAN_EXTENDED_IDENTIFIER,
-        .rtr = CAN_DATAFRAME,
-        .id = 0x1234567,
-        .rtr_mask = 1,
-        .id_mask = 0
-	};
-	struct can_frame rx_frame;
-	int filter_id;
 
-	filter_id = can_add_rx_filter_msgq(scan, &counter_msgq, &my_filter);
-	printf("Counter filter id: %d\n", filter_id);
-
-	while (1) {
-		k_msgq_get(&counter_msgq, &rx_frame, K_FOREVER);
-
-		if (rx_frame.dlc != 2U) {
-			printf("Wrong data length: %u\n", rx_frame.dlc);
-			continue;
-		}
-
-		printf("Counter received: %u\n",
-		       sys_be16_to_cpu(UNALIGNED_GET((uint16_t *)&rx_frame.data)));
-	}
-}
-
-void tx_irq_callback(const struct device *dev, int error, void *arg)
-{
-	char *sender = (char *)arg;
-
-	ARG_UNUSED(dev);
-
-	if (error != 0) {
-		printf("Callback! error-code: %d\nSender: %s\n",
-		       error, sender);
-	}
-}
+const struct device *const fcan = DEVICE_DT_GET(DT_ALIAS(fcan));
+const struct device *const scan = DEVICE_DT_GET(DT_ALIAS(scan));
+const struct device *const dlcan = DEVICE_DT_GET(DT_ALIAS(dlcan));
+struct k_thread rx_thread_data;
+k_tid_t rx_tid;
 
 void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
@@ -59,10 +26,6 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 	    uint16_t ch1 = 0, ch2 = 0, ch3 = 0;
 
 		for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
-
-			//printk("- %s, channel %d: ",
-			//       adc_channels[i].dev->name,
-			//       adc_channels[i].channel_id);
 
 			(void)adc_sequence_init_dt(&adc_channels[i], &sequence);
 
@@ -94,6 +57,12 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 
 void main(void)
 {
+	int ret;
+	ret = init(); // Initialze gpio, adc and can
+	if (ret < 0) {
+		printk("Initialization failed\n");
+		return;
+	}
 
 	/* BEGIN ros setup BEGIN */
 	rmw_uros_set_custom_transport(
@@ -139,64 +108,6 @@ void main(void)
 	msg.data.size = 0;
 	msg.data.capacity = ARRAY_LEN;
 	/* END ros setup END */
-
-	/* BEGIN can setup BEGIN*/
-	/*
-	struct can_frame frame = {
-                .id_type = CAN_EXTENDED_IDENTIFIER,
-                .rtr = CAN_DATAFRAME,
-                .id = 0x1234567,
-                .dlc = 1
-    };
-	uint8_t counter = 0;
-	k_tid_t rx_tid;
-	int ret;
-
-	if (!device_is_ready(scan)) {
-		printf("CAN: Device %s not ready.\n", scan->name);
-		return;
-	}
-	if (!device_is_ready(fcan)) {
-		printf("CAN: Device %s not ready.\n", fcan->name);
-		return;
-	}
-
-	ret = can_start(fcan);
-	if (ret != 0) {
-		printf("Error starting CAN controller [%d]", ret);
-		return;
-	}
-	ret = can_start(scan);
-	if (ret != 0) {
-		printf("Error starting CAN controller [%d]", ret);
-		return;
-	}
-
-	rx_tid = k_thread_create(&rx_thread_data, rx_thread_stack,
-				 K_THREAD_STACK_SIZEOF(rx_thread_stack),
-				 rx_thread, NULL, NULL, NULL,
-				 RX_THREAD_PRIORITY, 0, K_NO_WAIT);
-	if (!rx_tid) {
-		printf("ERROR spawning rx thread\n");
-	}*/
-	/* END can setup END */
-
-	/* BEGIN adc setup BEGIN */
-	
-	/* Configure channels individually prior to sampling. */
-	for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
-		if (!device_is_ready(adc_channels[i].dev)) {
-			printk("ADC controller device not ready\n");
-			return;
-		}
-
-		err = adc_channel_setup_dt(&adc_channels[i]);
-		if (err < 0) {
-			printk("Could not setup channel #%d (%d)\n", i, err);
-			return;
-		}
-	}
-	/* END adc setup END */
 	
 
 	while(1){
@@ -204,6 +115,6 @@ void main(void)
 	}
 
 	// free resources
-	RCCHECK(rcl_publisher_fini(&publisher, &node))
-	RCCHECK(rcl_node_fini(&node))
+	RCCHECK(rcl_publisher_fini(&publisher, &node));
+	RCCHECK(rcl_node_fini(&node));
 }

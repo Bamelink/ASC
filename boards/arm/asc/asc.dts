@@ -131,19 +131,32 @@
 			label = "TSMS_3V3";
 		};
 	};
-	/*
-	aliases {
-		led0 = &green_led_4;
-		led1 = &orange_led_3;
-		led2 = &red_led_5;
-		led3 = &blue_led_6;
-		sw0 = &user_button;
-	};
-	*/
+	
 	aliases {
 		fcan = &can1;
 		scan = &can2;
         dlcan = &mcp2515;
+
+		asbindicator = &asb_indicator;
+		valve2on = &valve2_on;
+		valve3on = &valve3_on;
+		ebsreleaseopen = &ebs_release_open;
+		valve1on = &valve1_on;
+		mcuassdcclose = &mcu_as_sdc_close;
+		scin = &sc_in;
+		asms = &asms;
+		wdi = &wdi;
+		hpcpon = &hpc_pon;
+
+		scblatchstate = &sc_b_latch_state;
+		scalatchstate = &sc_a_latch_state;
+		resk2 = &res_k2;
+		resk3 = &res_k3;
+		scafterres = &sc_after_res;
+		scbeforeres = &sc_before_res;
+		scpondelay = &sc_pon_delay;
+		resetlatch = &reset_latch;
+		tsms = &tsms;
 	};
 };
 
