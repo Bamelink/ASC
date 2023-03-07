@@ -8,7 +8,7 @@ sudo docker build -t zeph:latest .
 ```
 With this container, you are able to build the binaries
 ```bash
-sudo docker run -ti --rm -v $(pwd):/work/zephyrproject/ASC zeph
+sudo docker run -ti --rm -v $(pwd):/work/zephyrproject/ASC -v /dev:/dev --privileged --net=host zeph
 cd zephyrproject/ASC
 west build -b asc -p always
 ```
@@ -26,7 +26,7 @@ The buildfiles should automaticlly get copied into the right folder. If not, you
 
 To communicate with the microcontroller, you can run the microros agent via docker
 ```bash
-sudo docker run -it --rm -v /dev:/dev --privileged --net=host microros/micro-ros-agent:foxy serial-usb --dev [YOUR BOARD PORT, e.g. /dev/ttyACM0]
+sudo docker run -it --rm -v /dev:/dev --privileged --net=host microros/micro-ros-agent:foxy serial --dev /dev/ttyACM1 -v6
 ```
 You can also put the -v6 flag at the end to get a more detailed output of what is happening. If you want to see a topic, you can run the following commands
 ```bash
@@ -39,6 +39,9 @@ With the exec command, you directly attach to the container console and execute 
 sudo docker stop urosagent
 sudo docker rm urosagent
 ```
+
+## uROS agent native
+To run the uROS agent native, clone [this repository](https://github.com/micro-ROS/micro-ROS-Agent.git) into your workspace/src and build it. Make sure to checkout the right ROS version!
 ---
 ## Errors you can face
 ### Zephyr repo not found.
