@@ -1,5 +1,13 @@
 #include "main.h"
 
+int err;
+int16_t buf;
+struct adc_sequence sequence = {
+	.buffer = &buf,
+	/* buffer size in bytes, not number of samples */
+	.buffer_size = sizeof(buf),
+};
+
 /* CAN */
 void rx_thread(void *arg1, void *arg2, void *arg3)
 {
@@ -44,6 +52,44 @@ void tx_irq_callback(const struct device *dev, int error, void *arg)
 	}
 }
 
+void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
+{
+	(void) last_call_time;
+	if (timer != NULL) {
+	    uint16_t ch1 = 0, ch2 = 0, ch3 = 0;
+
+		for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
+
+			//printk("- %s, channel %d: ",
+			//       adc_channels[i].dev->name,
+			//       adc_channels[i].channel_id);
+
+			(void)adc_sequence_init_dt(&adc_channels[i], &sequence);
+
+			err = adc_read(adc_channels[i].dev, &sequence);
+			if (err < 0) {
+				printk("Could not read (%d)\n", err);
+				continue;
+			} else {
+				//printk("%d\n", buf);
+				if(i == 0){
+					ch1 = buf;
+				}
+				if(i == 1){
+					ch2 = buf;
+				}
+				if(i == 2){
+					ch3 = buf;
+				}
+			}
+		}
+		sprintf(msg.data.data, "CH1 = %d, CH2 = %d, CH3 = %d", ch1, ch2, ch3);
+		msg.data.size = strlen(msg.data.data);
+		RCSOFTCHECK(rcl_publish(&publisher, &msg, NULL));
+	}
+}
+
+
 
 
 void main(void)
@@ -67,23 +113,35 @@ void main(void)
 
 	// create node
 	rcl_node_t node;
-	RCCHECK(rclc_node_init_default(&node, "zephyr_int32_publisher", "", &support));
+	RCCHECK(rclc_node_init_default(&node, "zephyr_string_publisher", "", &support));
 
 	// create publisher
 	RCCHECK(rclc_publisher_init_default(
 		&publisher,
 		&node,
-		ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
-		"zephyr_int32_publisher"));
+		ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
+		"/zephyr_string_publisher"));
+
+	rcl_timer_t timer;
+	const unsigned int timer_timeout = 1000;
+	RCCHECK(rclc_timer_init_default(
+		&timer,
+		&support,
+		RCL_MS_TO_NS(timer_timeout),
+		timer_callback));
 
 	// create executor
 	rclc_executor_t executor;
 	RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
+	RCCHECK(rclc_executor_add_timer(&executor, &timer));
 
-	msg.data = 0;
+	msg.data.data = (char * ) malloc(ARRAY_LEN * sizeof(char));
+	msg.data.size = 0;
+	msg.data.capacity = ARRAY_LEN;
 	/* END ros setup END */
 
 	/* BEGIN can setup BEGIN*/
+	/*
 	struct can_frame frame = {
                 .id_type = CAN_EXTENDED_IDENTIFIER,
                 .rtr = CAN_DATAFRAME,
@@ -120,17 +178,11 @@ void main(void)
 				 RX_THREAD_PRIORITY, 0, K_NO_WAIT);
 	if (!rx_tid) {
 		printf("ERROR spawning rx thread\n");
-	}
+	}*/
 	/* END can setup END */
 
 	/* BEGIN adc setup BEGIN */
-	int err;
-	int16_t buf;
-	struct adc_sequence sequence = {
-		.buffer = &buf,
-		/* buffer size in bytes, not number of samples */
-		.buffer_size = sizeof(buf),
-	};
+	
 	/* Configure channels individually prior to sampling. */
 	for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
 		if (!device_is_ready(adc_channels[i].dev)) {
@@ -148,28 +200,7 @@ void main(void)
 	
 
 	while(1){
-		printk("ADC reading:\n");
-		for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
-			int32_t val_mv;
-
-			printk("- %s, channel %d: ",
-			       adc_channels[i].dev->name,
-			       adc_channels[i].channel_id);
-
-			(void)adc_sequence_init_dt(&adc_channels[i], &sequence);
-
-			err = adc_read(adc_channels[i].dev, &sequence);
-			if (err < 0) {
-				printk("Could not read (%d)\n", err);
-				continue;
-			} else {
-				printk("%"PRId16, buf);
-			}
-		}
-
 		rclc_executor_spin(&executor);
-		frame.data[0] = counter;
-		//can_send(fcan, &frame, K_MSEC(100), NULL, NULL);
 	}
 
 	// free resources
