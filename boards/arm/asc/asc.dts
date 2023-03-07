@@ -7,6 +7,7 @@
 /dts-v1/;
 #include <st/f4/stm32f407Xg.dtsi>
 #include <st/f4/stm32f407v(e-g)tx-pinctrl.dtsi>
+#include <zephyr/dt-bindings/adc/adc.h>
 
 / {
 	model = "Autonomous System Controller";
@@ -30,41 +31,104 @@
 			gpios = <&gpioa 15 GPIO_ACTIVE_LOW>;
 			label = "ASB Indicator";
 		};
+
+		valve2_on: valve2_on {
+			gpios = <&gpiob 4 GPIO_ACTIVE_LOW>;
+			label = "Valve2 On";
+		};
+
+		valve3_on: valve3_on {
+			gpios = <&gpiob 7 GPIO_ACTIVE_LOW>;
+			label = "Valve3 On";
+		};
+
 		ebs_release_open: ebs_release_open {
 			gpios = <&gpiob 15 GPIO_ACTIVE_HIGH>;
 			label = "EBS Release";
 		};
+
+		valve1_on: valve1_on {
+			gpios = <&gpiod 7 GPIO_ACTIVE_LOW>;
+			label = "Valve1 On";
+		};
+
 		mcu_as_sdc_close: mcu_as_sdc_close {
 			gpios = <&gpiod 10 GPIO_ACTIVE_HIGH>;
 			label = "SDC DO Close";
 		};
-		reset_latch: reset_latch {
-			gpios = <&gpiod 13 GPIO_ACTIVE_LOW>;
-			label = "Reset Latch";
+
+		sc_in: sc_in {
+			gpios = <&gpiod 11 GPIO_ACTIVE_HIGH>;
+			label = "SC In";
 		};
-		hpc_pon: hpc_pon {
-			gpios = <&gpioe 15 GPIO_ACTIVE_HIGH>;
-			label = "HPC Power On";
+
+		asms: asms {
+			gpios = <&gpiod 14 GPIO_ACTIVE_LOW>;
+			label = "ASMS";
 		};
+
+		wdi: wdi {
+			gpios = <&gpioe 2 GPIO_ACTIVE_LOW>;
+			label = "Watchdog";
+		};
+
 		mcu_as_error: mcu_as_error {
 			gpios = <&gpioe 7 GPIO_ACTIVE_LOW>;
 			label = "AS Error";
 		};
-		wdi: wdi {
-			gpios = <&gpioe 2 GPIO_ACTIVE_LOW>;
-			label = "Watchdog";
+
+		hpc_pon: hpc_pon {
+			gpios = <&gpioe 15 GPIO_ACTIVE_HIGH>;
+			label = "HPC Power On";
 		};
 	};
 
 	gpio_keys {
 		compatible = "gpio-keys";
+
+		sc_b_latch_state: sc_b_latch_state {
+			gpios = <&gpiod 1 GPIO_ACTIVE_HIGH>;
+			label = "SC B Latch State";
+		};
+
+		sc_a_latch_state: sc_a_latch_state {
+			gpios = <&gpiod 2 GPIO_ACTIVE_HIGH>;
+			label = "SC A Latch State";
+		};
+
 		res_k2: res_k2 {
 			label = "RES_K2";
 			gpios = <&gpiod 3 GPIO_ACTIVE_HIGH>;
 		};
+
 		res_k3: res_k3 {
 			label = "RES_K3";
 			gpios = <&gpiod 4 GPIO_ACTIVE_HIGH>;
+		};
+
+		sc_after_res: sc_after_res {
+			gpios = <&gpiod 5 GPIO_ACTIVE_HIGH>;
+			label = "SC After Res";
+		};
+
+		sc_before_res: sc_before_res {
+			gpios = <&gpiod 6 GPIO_ACTIVE_HIGH>;
+			label = "SC Before Res";
+		};
+
+		sc_pon_delay: sc_pon_delay {
+			gpios = <&gpiod 12 GPIO_ACTIVE_HIGH>;
+			label = "SC POn Delay";
+		};
+
+		reset_latch: reset_latch {
+			gpios = <&gpiod 13 GPIO_ACTIVE_LOW>;
+			label = "Reset Latch";
+		};
+
+		tsms: tsms {
+			gpios = <&gpioe 4 GPIO_ACTIVE_LOW>;
+			label = "TSMS_3V3";
 		};
 	};
 	/*
@@ -121,7 +185,7 @@
 		reg = <4>;
 		zephyr,gain = "ADC_GAIN_1";
 		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <20>; //!TODO: Change!!!!
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
 		zephyr,resolution = <8>;
 	};
 
@@ -129,7 +193,7 @@
        reg = <5>;
        zephyr,gain = "ADC_GAIN_1";
 	   zephyr,reference = "ADC_REF_INTERNAL";
-	   zephyr,acquisition-time = <20>; //!TODO: Change!!!!
+	   zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
 	   zephyr,resolution = <8>;
    };
 
@@ -137,7 +201,7 @@
        reg = <6>;
        zephyr,gain = "ADC_GAIN_1";
 	   zephyr,reference = "ADC_REF_INTERNAL";
-	   zephyr,acquisition-time = <20>; //!TODO: Change!!!!
+	   zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
 	   zephyr,resolution = <8>;
    };
 };
