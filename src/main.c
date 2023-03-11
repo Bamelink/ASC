@@ -19,6 +19,36 @@ const struct device *const dlcan = DEVICE_DT_GET(DT_ALIAS(dlcan));
 struct k_thread rx_thread_data;
 k_tid_t rx_tid;
 
+
+
+// gpio outputs
+const struct gpio_dt_spec asbindicator = GPIO_DT_SPEC_GET(DT_ALIAS(asbindicator), gpios);
+const struct gpio_dt_spec valve2on = GPIO_DT_SPEC_GET(DT_ALIAS(valve2on), gpios);
+const struct gpio_dt_spec valve3on = GPIO_DT_SPEC_GET(DT_ALIAS(valve3on), gpios);
+const struct gpio_dt_spec ebsreleaseopen = GPIO_DT_SPEC_GET(DT_ALIAS(ebsreleaseopen), gpios);
+const struct gpio_dt_spec valve1on = GPIO_DT_SPEC_GET(DT_ALIAS(valve1on), gpios);
+const struct gpio_dt_spec mcuassdcclose = GPIO_DT_SPEC_GET(DT_ALIAS(mcuassdcclose), gpios);
+const struct gpio_dt_spec scin = GPIO_DT_SPEC_GET(DT_ALIAS(scin), gpios);
+const struct gpio_dt_spec asms = GPIO_DT_SPEC_GET(DT_ALIAS(asms), gpios);
+const struct gpio_dt_spec wdi = GPIO_DT_SPEC_GET(DT_ALIAS(wdi), gpios);
+const struct gpio_dt_spec hpcpon = GPIO_DT_SPEC_GET(DT_ALIAS(hpcpon), gpios);
+
+// gpio inputs
+const struct gpio_dt_spec scblatchstate = GPIO_DT_SPEC_GET(DT_ALIAS(scblatchstate), gpios);
+const struct gpio_dt_spec scalatchstate = GPIO_DT_SPEC_GET(DT_ALIAS(scalatchstate), gpios);
+const struct gpio_dt_spec resk2 = GPIO_DT_SPEC_GET(DT_ALIAS(resk2), gpios);
+const struct gpio_dt_spec resk3 = GPIO_DT_SPEC_GET(DT_ALIAS(resk3), gpios);
+const struct gpio_dt_spec scafterres = GPIO_DT_SPEC_GET(DT_ALIAS(scafterres), gpios);
+const struct gpio_dt_spec scbeforeres = GPIO_DT_SPEC_GET(DT_ALIAS(scbeforeres), gpios);
+const struct gpio_dt_spec scpondelay = GPIO_DT_SPEC_GET(DT_ALIAS(scpondelay), gpios);
+const struct gpio_dt_spec resetlatch = GPIO_DT_SPEC_GET(DT_ALIAS(resetlatch), gpios);
+const struct gpio_dt_spec tsms = GPIO_DT_SPEC_GET(DT_ALIAS(tsms), gpios);
+
+// gpio callback data
+struct gpio_callback res_k2_cb_data;
+struct gpio_callback res_k3_cb_data;
+
+
 void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 {
 	(void) last_call_time;

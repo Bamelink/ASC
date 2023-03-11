@@ -20,7 +20,7 @@ void tx_irq_callback(const struct device *dev, int error, void *arg)
 // res interrupt
 void res_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
 {
-
+    // Give semaphore to start driving IF at least 5 seconds in AS_READY!
 }
 
 
